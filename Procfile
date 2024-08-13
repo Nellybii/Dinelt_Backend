@@ -1,1 +1,1 @@
-web: gunicorn Dinelt_Foodie_app.wsgi:application
+web: gunicorn Dinelt_Foodie_app.wsgi:application --log-file -
