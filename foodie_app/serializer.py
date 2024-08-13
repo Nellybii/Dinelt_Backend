@@ -79,7 +79,6 @@ class RegisterSerializer(serializers.ModelSerializer):
             return user
         except Exception as e:
             logger.debug(f"Creating user with data: {validated_data}")
-            raise serializers.ValidationError("An error occurred while creating the user.")
 
 class PostSerializer(serializers.ModelSerializer):
     author = serializers.StringRelatedField(read_only=True)

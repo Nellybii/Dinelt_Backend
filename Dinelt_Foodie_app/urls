@@ -1,11 +1,11 @@
-http://127.0.0.1:8000/api/register/
-http://127.0.0.1:8000/api/token/           for login
-http://127.0.0.1:8000/api/token/refresh/
-http://127.0.0.1:8000/api/templates/u/profile.html
-http://127.0.0.1:8000/api/templates/u/profile.html/update/
-http://127.0.0.1:8000/api/tests/
-http://127.0.0.1:8000/api/posts/
-http://127.0.0.1:8000/api/posts/<int:pk>/
-http://127.0.0.1:8000/api/stories/
-http://127.0.0.1:8000/api/stories/<int:pk>/
-http://127.0.0.1:8000/api/restaurants/
+https://foodiedinelt-e71e50dc88c7.herokuapp.com/api/register/
+https://foodiedinelt-e71e50dc88c7.herokuapp.com/api/token/           for login
+https://foodiedinelt-e71e50dc88c7.herokuapp.com/api/token/refresh/
+https://foodiedinelt-e71e50dc88c7.herokuapp.com/api/templates/u/profile.html/
+https://foodiedinelt-e71e50dc88c7.herokuapp.com/api/templates/u/profile.html/update/
+https://foodiedinelt-e71e50dc88c7.herokuapp.com/api/tests/
+https://foodiedinelt-e71e50dc88c7.herokuapp.com/api/posts/
+https://foodiedinelt-e71e50dc88c7.herokuapp.com/api/posts/<int:pk>/
+https://foodiedinelt-e71e50dc88c7.herokuapp.com/api/stories/
+https://foodiedinelt-e71e50dc88c7.herokuapp.com/api/stories/<int:pk>/
+https://foodiedinelt-e71e50dc88c7.herokuapp.com/api/restaurants/
