@@ -78,7 +78,8 @@ class RegisterSerializer(serializers.ModelSerializer):
             
             return user
         except Exception as e:
-            logger.debug(f"Creating user with data: {validated_data}")
+            logger.error(f"Error creating user and profile: {e}")
+            raise serializers.ValidationError("User and profile created successfully")
 
 class PostSerializer(serializers.ModelSerializer):
     author = serializers.StringRelatedField(read_only=True)
