@@ -21,7 +21,7 @@ SECRET_KEY = 'django-insecure-1ru#9wtpxqrr6z(bq-=lr3(&m3v%5olg^sszxib*&3=qc!fk)8
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['https://foodiedinelt-e71e50dc88c7.herokuapp.com/']
 
 
 # Application definition
@@ -80,16 +80,16 @@ WSGI_APPLICATION = 'Dinelt_Foodie_app.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'dinelt_foodie',
-        'USER': 'postgres',
-        'PASSWORD': 'movie123',
-        'HOST': 'localhost',
-        'PORT': '5435',
-    }
-}
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'dinelt_foodie',
+#         'USER': 'postgres',
+#         'PASSWORD': 'movie123',
+#         'HOST': 'localhost',
+#         'PORT': '5435',
+#     }
+# }
 
 
 
@@ -143,7 +143,7 @@ REST_FRAMEWORK = {
     ),
 }
 
-
+DEBUG = False
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('Bearer',),
