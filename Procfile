@@ -1,1 +1,1 @@
-web: gunicorn gettingstarted.wsgi
+web gunicorn foodie_app.wsgi:application --log-file
