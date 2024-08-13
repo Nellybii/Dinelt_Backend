@@ -1,4 +1,6 @@
 from pathlib import Path
+import django_heroku
+import dj_database_url
 import os
 from dotenv import load_dotenv
 
@@ -19,7 +21,7 @@ SECRET_KEY = 'django-insecure-1ru#9wtpxqrr6z(bq-=lr3(&m3v%5olg^sszxib*&3=qc!fk)8
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -150,5 +152,8 @@ SIMPLE_JWT = {
 }
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_DIR = (os.path.join(BASE_DIR, 'static'),)
+django_heroku.settings(locals())
 
 AUTH_USER_MODEL ="foodie_app.user"
