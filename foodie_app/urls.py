@@ -8,7 +8,7 @@ urlpatterns = [
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('register/', User_views.RegisterView.as_view(), name='auth_register'),
     path('templates/u/profile.html/', User_views.ProfileRetrieveUpdateDestroyView.as_view(), name='user_profile'),
-    path('templates/u/profile.html/update/', User_views.ProfileUpdate.as_view(), name='update_profile'),
+    path('templates/u/profile.html/update/', User_views.ProfileRetrieveUpdateDestroyView.as_view(), name='update_profile'),
     path('test/', User_views.testEndPoint, name='test'),
     path('', User_views.getRoutes),
     path('posts/', Post_views.PostListCreateView.as_view(), name='post-list-create'),
