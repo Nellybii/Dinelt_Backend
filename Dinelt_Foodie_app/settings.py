@@ -91,7 +91,11 @@ WSGI_APPLICATION = 'Dinelt_Foodie_app.wsgi.application'
 #     }
 # }
 
+LOCAL_DB_URL = 'postgres://postgres:movie123@localhost:5435/dinelt_foodie'
 
+DATABASES = {
+    'default': dj_database_url.config(default=LOCAL_DB_URL)
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
