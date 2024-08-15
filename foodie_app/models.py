@@ -17,7 +17,7 @@ class User(AbstractUser):
     city = models.CharField(max_length=100)
     address = models.CharField(max_length=255)
     postal_code = models.CharField(max_length=20)
-    image = models.ImageField(default='default.jpg', upload_to='profile_pics')
+    image = models.ImageField(upload_to='profile_pics')
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']
