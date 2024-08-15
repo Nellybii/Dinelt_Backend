@@ -71,15 +71,21 @@ class RegisterSerializer(serializers.ModelSerializer):
             user = User(**validated_data)
             user.set_password(password)
             user.save()
-            
-            # Automatically create a profile for the new user
-            Profile.objects.create(user=user)
+
+            # Automatically create a profile for the new user with the same image
+            profile_data = {
+                'user': user,
+                'username': user.username,
+                'image': user.image
+            }
+            Profile.objects.create(**profile_data)
             logger.info(f"User and profile created successfully: {user.email}")
-            
+
             return user
         except Exception as e:
             logger.error(f"Error creating user and profile: {e}")
-            raise serializers.ValidationError("User and profile created successfully")
+            raise serializers.ValidationError("An error occurred while creating the user and profile")
+
 
 class PostSerializer(serializers.ModelSerializer):
     author = serializers.StringRelatedField(read_only=True)
