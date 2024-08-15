@@ -9,6 +9,7 @@ urlpatterns = [
     path('register/', User_views.RegisterView.as_view(), name='auth_register'),
     path('templates/u/profile.html/', User_views.ProfileRetrieveUpdateDestroyView.as_view(), name='user_profile'),
     path('templates/u/profile.html/update/', User_views.ProfileRetrieveUpdateDestroyView.as_view(), name='update_profile'),
+    path('profile/<str:username>/', User_views.ProfileDetailView.as_view(), name='profile-detail'),
     path('test/', User_views.testEndPoint, name='test'),
     path('', User_views.getRoutes),
     path('posts/', Post_views.PostListCreateView.as_view(), name='post-list-create'),

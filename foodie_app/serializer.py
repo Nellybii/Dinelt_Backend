@@ -72,11 +72,10 @@ class RegisterSerializer(serializers.ModelSerializer):
             user.set_password(password)
             user.save()
 
-            # Automatically create a profile for the new user with the same image
             profile_data = {
                 'user': user,
                 'username': user.username,
-                'image': user.image
+                'image': validated_data.get('image')  
             }
             Profile.objects.create(**profile_data)
             logger.info(f"User and profile created successfully: {user.email}")
@@ -86,55 +85,58 @@ class RegisterSerializer(serializers.ModelSerializer):
             logger.error(f"Error creating user and profile: {e}")
             raise serializers.ValidationError("An error occurred while creating the user and profile")
 
-
+        
 class PostSerializer(serializers.ModelSerializer):
-    author = serializers.StringRelatedField(read_only=True)
-
     class Meta:
         model = Post
         fields = ['id', 'author', 'content', 'image', 'created_at']
         read_only_fields = ['id', 'author', 'created_at']
 
-    def validate(self, data):
-        if not data.get('content') and not data.get('image'):
-            logger.warning("Post creation failed due to missing content and image.")
-            raise serializers.ValidationError("Post must contain either content or an image.")
-        return data
-
+    def create(self, validated_data):
+        request = self.context.get('request')
+        user = request.user
+        validated_data['author'] = user 
+        post = super().create(validated_data)
+        
+        profile = Profile.objects.get(user=user)
+        profile.posts.add(post)
+        
+        return post
 class StorySerializer(serializers.ModelSerializer):
-    author = serializers.StringRelatedField(read_only=True)
-
     class Meta:
         model = Story
         fields = ['id', 'author', 'content', 'image', 'created_at']
         read_only_fields = ['id', 'author', 'created_at']
 
-    def validate(self, data):
-        if not data.get('content') and not data.get('image'):
-            logger.warning("Story creation failed due to missing content and image.")
-            raise serializers.ValidationError("Story must contain either content or an image.")
-        return data
+    def create(self, validated_data):
+        request = self.context.get('request')
+        profile = Profile.objects.get(user=request.user)
+        validated_data['author'] = request.user
+        story = super().create(validated_data)
+        profile.stories.add(story)
+        return story
 
 class ProfileSerializer(serializers.ModelSerializer):
     user = serializers.StringRelatedField(read_only=True)
     posts = PostSerializer(many=True, read_only=True)
+    stories = StorySerializer(many=True, read_only=True)
 
     class Meta:
         model = Profile
-        fields = ['id', 'user', 'username', 'bio', 'image', 'followers', 'following', 'posts']
-        read_only_fields = ['id', 'user', 'followers', 'following', 'posts']
+        fields = ['id', 'user', 'username', 'bio', 'image', 'followers', 'following', 'posts', 'stories']
+        read_only_fields = ['id', 'user', 'followers', 'following', 'posts', 'stories']
 
     def update(self, instance, validated_data):
         try:
             if 'image' in validated_data:
-                instance.image.delete(save=False) 
-            updated_instance = super().update(instance, validated_data)
-            logger.info(f"Profile updated successfully for user: {updated_instance.user}")
-            return updated_instance
+                if instance.image:
+                    instance.image.delete(save=False) 
+                instance.image = validated_data['image']
+            return super().update(instance, validated_data)
         except Exception as e:
             logger.error(f"Error updating profile: {e}")
             raise serializers.ValidationError("An error occurred while updating the profile.")
-
+        
 class MenuItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = MenuItem

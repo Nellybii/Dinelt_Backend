@@ -81,16 +81,16 @@ WSGI_APPLICATION = 'Dinelt_Foodie_app.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': 'dinelt_foodie',
-#         'USER': 'postgres',
-#         'PASSWORD': 'movie123',
-#         'HOST': 'localhost',
-#         'PORT': '5435',
-#     }
-# }
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'dinelt_foodie',
+        'USER': 'postgres',
+        'PASSWORD': 'movie123',
+        'HOST': 'localhost',
+        'PORT': '5435',
+    }
+}
 
 LOCAL_DB_URL = 'postgres://postgres:movie123@localhost:5435/dinelt_foodie'
 
@@ -148,7 +148,7 @@ REST_FRAMEWORK = {
     ),
 }
 
-DEBUG = False
+DEBUG = True
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('Bearer',),
@@ -157,6 +157,7 @@ SIMPLE_JWT = {
 }
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIR = (os.path.join(BASE_DIR, 'static'),)
 django_heroku.settings(locals())

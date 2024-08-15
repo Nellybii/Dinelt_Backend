@@ -1,3 +1,4 @@
+from django.shortcuts import render, get_object_or_404
 from foodie_app.models import User, Profile
 from foodie_app.serializer import MyTokenObtainPairSerializer, RegisterSerializer, ProfileSerializer
 from rest_framework.exceptions import PermissionDenied, NotFound
@@ -5,6 +6,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework import generics, permissions
+from django.views.generic import DetailView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 import logging
@@ -59,3 +61,7 @@ class ProfileRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
         except Profile.DoesNotExist:
             logger.error(f"Profile not found for user {user.username}")
             raise NotFound("Profile not found")
+class ProfileDetailView(generics.RetrieveAPIView):
+    queryset = Profile.objects.all()
+    serializer_class = ProfileSerializer
+    lookup_field = 'username'

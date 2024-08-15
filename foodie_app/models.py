@@ -38,28 +38,28 @@ class User(AbstractUser):
     def save(self, *args, **kwargs):
         super(User, self).save(*args, **kwargs)
 
-class Post(models.Model):
-    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='posts')
-    content = models.TextField(max_length=1000)
-    image = models.ImageField(upload_to="post_images", blank=True, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-class Story(models.Model):
-    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='stories')
-    content = models.TextField(max_length=1000)
-    image = models.ImageField(upload_to="story_images", blank=True, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    expires_at = models.DateTimeField(null=True, blank=True)
-
 class Profile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     username = models.CharField(max_length=200)
     bio = models.CharField(max_length=300)
     image = models.ImageField(upload_to="user_images", blank=True, null=True)
     followers = models.IntegerField(default=0)
     following = models.IntegerField(default=0)
-    posts = models.ManyToManyField('Post', related_name='Post', blank=True)
-    stories = models.ManyToManyField('Story', related_name='Story', blank=True)
+    posts = models.ManyToManyField('Post', related_name='profile_posts', blank=True)
+    stories = models.ManyToManyField('Story', related_name='profile_stories', blank=True)
+
+class Post(models.Model):
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='posts')
+    content = models.TextField()
+    image = models.ImageField(upload_to="post_images", blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+class Story(models.Model):
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='stories')
+    content = models.TextField()
+    image = models.ImageField(upload_to="story_images", blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField(null=True, blank=True)
 
 class Restaurant(models.Model):
     name = models.CharField(max_length=255)
@@ -116,4 +116,8 @@ class Reservation(models.Model):
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
-        Profile.objects.get_or_create(user=instance, username=instance.username)
+        Profile.objects.get_or_create(
+            user=instance,
+            username=instance.username,
+            defaults={'image': instance.image} 
+        )
