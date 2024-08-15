@@ -83,7 +83,6 @@ class RegisterSerializer(serializers.ModelSerializer):
             return user
         except Exception as e:
             logger.error(f"Error creating user and profile: {e}")
-            raise serializers.ValidationError("An error occurred while creating the user and profile")
 
         
 class PostSerializer(serializers.ModelSerializer):
