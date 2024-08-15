@@ -66,23 +66,20 @@ class RegisterSerializer(serializers.ModelSerializer):
         return value
 
     def create(self, validated_data):
-        try:
-            password = validated_data.pop('password')
-            user = User(**validated_data)
-            user.set_password(password)
-            user.save()
+        password = validated_data.pop('password')
+        user = User(**validated_data)
+        user.set_password(password)
+        user.save()
 
-            profile_data = {
-                'user': user,
-                'username': user.username,
-                'image': validated_data.get('image')  
+        profile_data = {
+            'user': user,
+            'username': user.username,
+            'image': validated_data.get('image')  
             }
-            Profile.objects.create(**profile_data)
-            logger.info(f"User and profile created successfully: {user.email}")
+        Profile.objects.create(**profile_data)
+        logger.info(f"User and profile created successfully: {user.email}")
 
-            return user
-        except Exception as e:
-            logger.error(f"Error creating user and profile: {e}")
+        return user
 
         
 class PostSerializer(serializers.ModelSerializer):
