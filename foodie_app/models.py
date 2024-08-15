@@ -57,10 +57,18 @@ class Story(models.Model):
     image = models.ImageField(upload_to="story_images", default="default.jpg")
     created_at = models.DateTimeField(auto_now_add=True)
     expires_at = models.DateTimeField(null=True, blank=True)  
+# followers
+# reviews
+# Comments  
+# food category(3)
+# reservations category (3)
+# cart
+# bookings
+
 
     def save(self, *args, **kwargs):
-        if not self.is_superuser:  # Skip image logic for superusers
-            if not self.image or not hasattr(self.image, 'path'):  # If no image is provided
+        if not self.is_superuser:
+            if not self.image or not hasattr(self.image, 'path'):  
                 default_image_path = os.path.join(settings.MEDIA_ROOT, 'profile_pics/default.jpg')
                 if os.path.exists(default_image_path):
                     with open(default_image_path, 'rb') as f:
@@ -74,13 +82,14 @@ class Profile(models.Model):
     image = models.ImageField(upload_to="user_images", default="default.jpg")
     followers = models.IntegerField(default=0)
     following = models.IntegerField(default=0)
-    posts = models.ManyToManyField('Post', related_name='profiles', blank=True)
+    posts = models.ManyToManyField('Post', related_name='Post', blank=True)
+    stories=models.ManyToManyField('Story', related_name='Story', blank=True)
 
 class Restaurant(models.Model):
     name = models.CharField(max_length=255)
     address = models.CharField(max_length=255)
-    city = models.CharField(max_length=100)  # New field
-    country = models.CharField(max_length=100)  # New field
+    city = models.CharField(max_length=100) 
+    country = models.CharField(max_length=100)  
     phone_number = models.CharField(max_length=20)
     image = models.ImageField(upload_to='restaurant_images', default='default.jpg')
     description = models.TextField(blank=True)
