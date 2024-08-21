@@ -28,8 +28,7 @@ def getRoutes(request):
         '/api/token/',
         '/api/register/',
         '/api/token/refresh/',
-        '/api/profile/',
-        '/api/profile/update/'
+        
     ]
     return Response(routes)
 

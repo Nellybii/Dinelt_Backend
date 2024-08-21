@@ -18,8 +18,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-1ru#9wtpxqrr6z(bq-=lr3(&m3v%5olg^sszxib*&3=qc!fk)8'
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# SECURITY WARNING: don't run with debug turned on in productio
 
 ALLOWED_HOSTS = ['https://foodiedinelt-e71e50dc88c7.herokuapp.com/']
 
@@ -148,7 +147,7 @@ REST_FRAMEWORK = {
     ),
 }
 
-DEBUG = False
+DEBUG = True
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('Bearer',),
@@ -162,4 +161,5 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIR = (os.path.join(BASE_DIR, 'static'),)
 django_heroku.settings(locals())
 
-AUTH_USER_MODEL ="foodie_app.user"
+AUTH_USER_MODEL = 'foodie_app.User'
+

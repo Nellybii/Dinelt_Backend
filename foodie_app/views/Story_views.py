@@ -21,3 +21,5 @@ class StoryRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
         if post.author != self.request.user:
             self.permission_denied(self.request)
         return post
+    
+

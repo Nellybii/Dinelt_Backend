@@ -9,13 +9,12 @@ class UserAdmin(admin.ModelAdmin):
     ordering = ['username']
 
 class ProfileAdmin(admin.ModelAdmin):
-    list_display = ('get_full_name', 'bio', 'profile_image', 'followers', 'following')
+    list_display = ('get_full_name', 'bio', 'profile_image', 'get_followers_count', 'get_following_count')
     list_editable = ('bio',)
     search_fields = ('user__username', 'bio')
     ordering = ('user',)
 
     def get_full_name(self, obj):
-        print(obj.user.full_name)
         return obj.user.full_name
     get_full_name.short_description = 'Full Name'
 
@@ -24,6 +23,14 @@ class ProfileAdmin(admin.ModelAdmin):
             return format_html('<img src="{}" width="50" height="50"/>', obj.user.image.url)
         return 'No image'
     profile_image.short_description = 'Profile Image'
+
+    def get_followers_count(self, obj):
+        return obj.followers.count()
+    get_followers_count.short_description = 'Followers Count'
+
+    def get_following_count(self, obj):
+        return obj.following.count()
+    get_following_count.short_description = 'Following Count'
 
 class RestaurantAdmin(admin.ModelAdmin):
     list_display = ('name', 'address', 'city', 'country', 'phone_number')
@@ -38,8 +45,9 @@ class OrderAdmin(admin.ModelAdmin):
     ordering = ('-created_at',)
 
 class OrderItemAdmin(admin.ModelAdmin):
-    list_display = ('order', 'menu_item', 'quantity', 'price')
-    search_fields = ('order__user__username', 'menu_item__name')
+    list_display = ('order', 'food', 'price', 'quantity')  # Ensure this matches your OrderItem model fields
+    search_fields = ('order__id', 'food__name')
+    list_filter = ('order', 'food')
     ordering = ('order',)
 
 class ReservationAdmin(admin.ModelAdmin):
