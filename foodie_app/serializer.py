@@ -167,23 +167,50 @@ class FoodSerializer(serializers.ModelSerializer):
 class OrderItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderItem
-        fields = ['id', 'food', 'quantity']
+        fields = ['id', 'food', 'price', 'quantity', 'user']
+        read_only_fields = ['user']
+
 
 class OrderSerializer(serializers.ModelSerializer):
-    order_items = OrderItemSerializer(many=True, required=False)
+    order_items = serializers.ListField(child=serializers.IntegerField())
 
     class Meta:
         model = Order
-        fields = ['id', 'user', 'restaurant', 'order_items', 'order_price', 'created_at', 'status']
-        read_only_fields = ['id', 'user','restaurant', 'order_price', 'created_at','status']
+        fields = ['id', 'user', 'restaurant', 'created_at', 'status', 'total_price', 'order_items']
+        read_only_fields = ['user']
 
     def create(self, validated_data):
-        order_items_data = validated_data.pop('order_items', [])
-        order = super().create(validated_data)
-        for item_data in order_items_data:
-            OrderItem.objects.create(order=order, **item_data)
+        order_items_ids = validated_data.pop('order_items', [])
+        order = Order.objects.create(**validated_data)
+
+        # Associate existing OrderItems with the created Order
+        for item_id in order_items_ids:
+            try:
+                order_item = OrderItem.objects.get(id=item_id)
+                order.order_items.add(order_item)
+            except OrderItem.DoesNotExist:
+                raise serializers.ValidationError(f"OrderItem with id {item_id} does not exist.")
+        
         return order
 
+    def update(self, instance, validated_data):
+        order_items_ids = validated_data.pop('order_items', [])
+        instance.restaurant = validated_data.get('restaurant', instance.restaurant)
+        instance.status = validated_data.get('status', instance.status)
+        instance.total_price = validated_data.get('total_price', instance.total_price)
+        instance.save()
+
+        # Update OrderItems (assume IDs are to be replaced with new ones)
+        instance.order_items.clear()
+        for item_id in order_items_ids:
+            try:
+                order_item = OrderItem.objects.get(id=item_id)
+                instance.order_items.add(order_item)
+            except OrderItem.DoesNotExist:
+                raise serializers.ValidationError(f"OrderItem with id {item_id} does not exist.")
+
+        return instance
+    
 class ReservationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Reservation

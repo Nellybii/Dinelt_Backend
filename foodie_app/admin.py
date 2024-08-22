@@ -39,16 +39,19 @@ class RestaurantAdmin(admin.ModelAdmin):
     ordering = ('name',)
 
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ('user', 'restaurant', 'total_price', 'created_at', 'status')
+    list_display = ('user', 'restaurant', 'total_price', 'created_at', 'status', 'order_items_count')
     search_fields = ('user__username', 'restaurant__name', 'status')
     list_filter = ('status', 'created_at')
-    ordering = ('-created_at',)
+    ordering = ('created_at',)
+
+    def order_items_count(self, obj):
+        return obj.order_items.count()
+    order_items_count.short_description = 'Order Items Count'
 
 class OrderItemAdmin(admin.ModelAdmin):
-    list_display = ('order', 'food', 'price', 'quantity')  # Ensure this matches your OrderItem model fields
-    search_fields = ('order__id', 'food__name')
-    list_filter = ('order', 'food')
-    ordering = ('order',)
+    list_display = ('food', 'quantity')
+    search_fields = ('food__name',)  
+    list_filter = ('food',)
 
 class ReservationAdmin(admin.ModelAdmin):
     list_display = ('user', 'restaurant', 'reservation_date', 'number_of_people')

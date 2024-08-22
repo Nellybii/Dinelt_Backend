@@ -6,9 +6,14 @@ from django.dispatch import receiver
 from datetime import timedelta
 from django.utils.translation import gettext_lazy as _
 
+
 import logging
+from django.utils import timezone
+
 
 logger = logging.getLogger(__name__)
+
+
 
 
 FOOD_CATEGORY_CHOICES = [
@@ -18,16 +23,19 @@ FOOD_CATEGORY_CHOICES = [
     ('beverage', _('Beverage')),
 ]
 
+
 RESERVATION_TYPE_CHOICES = [
     ('conference_room', _('Conference Room')),
     ('meeting_table', _('Meeting Table')),
 ]
+
 
 STATUS_CHOICES = [
     ('Pending', _('Pending')),
     ('Completed', _('Completed')),
     ('Cancelled', _('Cancelled')),
 ]
+
 
 class User(AbstractUser):
     full_name = models.CharField(max_length=255)
@@ -40,8 +48,10 @@ class User(AbstractUser):
     image = models.ImageField(upload_to='profile_pics', blank=True, null=True)
     is_business_owner = models.BooleanField(default=False, null=False)
 
+
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']
+
 
     groups = models.ManyToManyField(
         Group,
@@ -57,6 +67,7 @@ class User(AbstractUser):
         help_text='Specific permissions for this user.',
         related_query_name='custom_user'
     )
+
 
 class Profile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
@@ -75,6 +86,9 @@ class Profile(models.Model):
 
 
 
+
+
+
 class Post(models.Model):
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='posts')
     content = models.TextField()
@@ -82,6 +96,7 @@ class Post(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     comments = models.ManyToManyField('Comments', blank=True, related_name="post_comments")
     likes = models.IntegerField(default=0)
+
 
 class Story(models.Model):
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='stories')
@@ -92,14 +107,17 @@ class Story(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     expires_at = models.DateTimeField(null=True, blank=True)  
 
+
     def save(self, *args, **kwargs):
         if not self.expires_at:
             self.expires_at = self.created_at + timedelta(hours=24)  
         super().save(*args, **kwargs)
 
+
 class Comments(models.Model):
     content = models.TextField(blank=True, max_length=100)
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='post_comments')
+
 
 class Restaurant(models.Model):
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='owned_restaurants')
@@ -110,13 +128,14 @@ class Restaurant(models.Model):
     phone_number = models.CharField(max_length=20)
     image = models.ImageField(upload_to='restaurant_images', blank=True, null=True)
     description = models.TextField(blank=True)
-    
+   
     @property
     def managers(self):
         return User.objects.filter(manager__restaurant=self)
-    
+   
     def __str__(self):
         return self.name
+
 
 class RestaurantReview(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -124,10 +143,12 @@ class RestaurantReview(models.Model):
     rating = models.PositiveIntegerField()
     review = models.TextField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
-    
+   
+
 
     def __str__(self):
         return f"Review by {self.user.username} on {self.restaurant.name}"
+
 
 class Food(models.Model):
     name = models.CharField(max_length=255)
@@ -136,40 +157,53 @@ class Food(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=2)
     description = models.TextField(blank=True, null=False)
 
+
     def __str__(self):
         return self.name
+
 
 class ReservationCategory(models.Model):
     name = models.CharField(max_length=255)
     reservation_type = models.CharField(max_length=20, choices=RESERVATION_TYPE_CHOICES)
     restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE, related_name='reservation_categories')
-    
+   
     def __str__(self):
         return self.name
+
+
+class OrderItem(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    food = models.ForeignKey(Food, on_delete=models.CASCADE)
+    price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    quantity = models.PositiveIntegerField(default=1)
+
+    def save(self, *args, **kwargs):
+        if self.food:
+            self.price = self.food.price
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.food.name} - {self.quantity}"
+
 
 class Order(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE)
-    order_items = models.ManyToManyField(Food, through='OrderItem')
-    order_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     created_at = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='Pending')
+    total_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    order_items = models.ManyToManyField(OrderItem, related_name='orders')
 
-    @property
-    def total_price(self):
-        return sum(item.price * item.quantity for item in self.orderitem_set.all())
 
     def __str__(self):
         return f"Order {self.id} by {self.user.username}"
 
-class OrderItem(models.Model):
-    order = models.ForeignKey(Order, on_delete=models.CASCADE)
-    food = models.ForeignKey(Food, on_delete=models.CASCADE)
-    price = models.DecimalField(max_digits=10, decimal_places=2)
-    quantity = models.PositiveIntegerField(default=1)
 
-    def __str__(self):
-        return f"{self.food.name} in order {self.order.id}"
+    def calculate_total_price(self):
+        return sum(item.price * item.quantity for item in self.order_items.all())
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
 
 
 class Cart(models.Model):
@@ -178,8 +212,11 @@ class Cart(models.Model):
     items = models.ManyToManyField(Food, through='CartItem')
     created_at = models.DateTimeField(auto_now_add=True)
 
+
     def __str__(self):
         return f"Cart for {self.user.username} at {self.restaurant.name}"
+
+
 
 
 class CartItem(models.Model):
@@ -187,8 +224,11 @@ class CartItem(models.Model):
     food = models.ForeignKey(Food, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=1)
 
+
     def __str__(self):
         return f"{self.food.name} in cart {self.cart.id}"
+
+
 
 
 class Reservation(models.Model):
@@ -199,8 +239,11 @@ class Reservation(models.Model):
     special_requests = models.TextField(blank=True)
     reservation_type = models.CharField(max_length=50, choices=RESERVATION_TYPE_CHOICES, default='conference_room')
 
+
     def __str__(self):
         return f"Reservation {self.id} by {self.user.username} on {self.reservation_date}"
+
+
 
 
 class Booking(models.Model):
@@ -211,8 +254,11 @@ class Booking(models.Model):
     number_of_guests = models.PositiveIntegerField()
     special_requests = models.TextField(blank=True)
 
+
     def __str__(self):
         return f"Booking {self.id} by {self.user.username} from {self.check_in_date} to {self.check_out_date}"
+
+
 
 
 class Accommodation(models.Model):
@@ -225,8 +271,11 @@ class Accommodation(models.Model):
     image = models.ImageField(upload_to='accommodation_images', blank=True, null=True)
     restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE, blank=True, null=True)
 
+
     def __str__(self):
         return self.name
+
+
 
 
 class Manager(models.Model):
@@ -234,15 +283,15 @@ class Manager(models.Model):
     restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE)
     date_assigned = models.DateTimeField(auto_now_add=True)
 
+
     def __str__(self):
         return f"{self.user.username} is a manager for {self.restaurant.name}"
-    
-
+   
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
         Profile.objects.get_or_create(
             user=instance,
             username=instance.username,
-            defaults={'image': instance.image} 
+            defaults={'image': instance.image}
         )
