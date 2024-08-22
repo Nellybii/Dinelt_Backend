@@ -147,7 +147,7 @@ REST_FRAMEWORK = {
     ),
 }
 
-DEBUG = True
+DEBUG = False
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('Bearer',),
