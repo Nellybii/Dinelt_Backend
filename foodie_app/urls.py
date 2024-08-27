@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import User_views, Post_views, Story_views, restaurant_views, order_views, food_views, accomodation_views
+from .views import User_views, Post_views, Story_views, restaurant_views, order_views, cart_views, food_views, accomodation_views, reservation_views
 
 from rest_framework_simplejwt.views import TokenRefreshView
 
@@ -29,16 +29,19 @@ urlpatterns = [
     path('orders/', order_views.OrderListView.as_view(), name='order-list'),  # List all orders
     path('orders/create/', order_views.OrderCreateView.as_view(), name='order-create'),
     path('orders/<int:order_id>/', order_views.OrderRetrieveUpdateDestroyView.as_view(), name='order-detail'),
-    # path('carts/', order_views.CartCreateView.as_view()),
-    # path('carts/<int:cart_id>/', order_views.CartRetrieveUpdateDestroyView.as_view()),
-    # path('carts/<int:cart_id>/add-item/', order_views.CartItemCreateView.as_view()),
-    # path('carts/<int:cart_id>/remove-item/', order_views.CartItemRemoveView.as_view()),
-    #path('reservations/', restaurant_views.ReservationCreateView.as_view(), name='reservation_create'),
+    # path('cart/', cart_views.CartRetrieveView.as_view(), name='cart-detail'),
+    # path('cart/add/', cart_views.CartCreateView.as_view(), name='add-to-cart'),
+    # path('cart/update/', cart_views.CartUpdateView.as_view(), name='remove-from-cart'),
+    # path('cart/delete/', cart_views.CartDeleteView.as_view(), name='remove-from-cart'),
     path('accommodation/create/', accomodation_views.AccommodationCreateView.as_view(), name='accommodation-create'),
     path('accommodation/', accomodation_views.AccommodationListView.as_view(), name='accommodation-list'),
     path('accommodation/<int:pk>/', accomodation_views.AccommodationDetailView.as_view(), name='accommodation-detail'),
     path('accommodation/<int:pk>/update/', accomodation_views.AccommodationUpdateView.as_view(), name='accommodation-update'),
     path('accommodation/<int:pk>/delete/', accomodation_views.AccommodationDeleteView.as_view(), name='accommodation-delete'),
+    path('bookings/', accomodation_views.BookingListCreateView.as_view(), name='booking-list-create'),
+    path('bookings/<int:pk>/', accomodation_views.BookingRetrieveUpdateDestroyView.as_view(), name='booking-detail'),
+    path('reservations/', reservation_views.ReservationListCreateAPIView.as_view(), name='reservation-list-create'),
+    path('reservations/<int:pk>/', reservation_views.ReservationRetrieveUpdateDestroyAPIView.as_view(), name='reservation-detail')
 ]
  # followers
 # reviews

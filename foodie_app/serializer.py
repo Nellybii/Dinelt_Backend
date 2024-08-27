@@ -165,10 +165,10 @@ class FoodSerializer(serializers.ModelSerializer):
         read_only_fields = ['owner']
 
 
-class FoodSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Food
-        fields = '__all__'  # Include all fields for simplicity
+# class FoodSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Food
+#         fields = '__all__'  
 
 class OrderItemSerializer(serializers.ModelSerializer):
     food_name = serializers.ReadOnlyField(source='food.name')
@@ -192,27 +192,31 @@ class OrderSerializer(serializers.ModelSerializer):
         return order
 
 class CartItemSerializer(serializers.ModelSerializer):
-    food = FoodSerializer()  # Nested serializer for Food
+    food_name = serializers.CharField(source='food.name', read_only=True)
+    food_price = serializers.DecimalField(source='food.price', max_digits=10, decimal_places=2, read_only=True)
+    total_price = serializers.SerializerMethodField()
+
     class Meta:
         model = CartItem
-        fields = ('id', 'cart', 'food', 'quantity')
-
-class CartSerializer(serializers.ModelSerializer):
-    cart_items = CartItemSerializer(many=True)  # Nested serializer for CartItem
-    total_price = serializers.SerializerMethodField()  # Custom method to calculate total
+        fields = ['id', 'food', 'food_name', 'food_price', 'quantity', 'total_price']
 
     def get_total_price(self, obj):
         return obj.total_price
 
+class CartSerializer(serializers.ModelSerializer):
+    cart_items = CartItemSerializer(many=True, read_only=True)
+    total_price = serializers.ReadOnlyField()
+
     class Meta:
         model = Cart
-        fields = ('id', 'user', 'cart_items', 'total_price')
-        read_only = ("user")
+        fields = ['id', 'user', 'cart_items', 'total_price']
+        read_only_fields = ['id', 'user', 'total_price']
     
 class ReservationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Reservation
         fields = ['id', 'user', 'restaurant', 'reservation_date', 'number_of_people', 'special_requests', 'reservation_type']
+        read_only_fields = ['id', 'user']
 
 
 class BookingSerializer(serializers.ModelSerializer):
@@ -229,7 +233,11 @@ class BookingSerializer(serializers.ModelSerializer):
         except Exception as e:
             logger.error(f"Error creating booking: {e}")
             raise serializers.ValidationError("An error occurred while creating the booking.")
-        
+    def validate_accommodation(self, value):
+        if not Accommodation.objects.filter(id=value.id).exists():
+            raise serializers.ValidationError("Accommodation does not exist.")
+        return value
+    
 class AccommodationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Accommodation

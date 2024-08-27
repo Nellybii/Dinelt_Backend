@@ -85,10 +85,6 @@ class Profile(models.Model):
     is_business_owner = models.BooleanField(default=False, null=False)
 
 
-
-
-
-
 class Post(models.Model):
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='posts')
     content = models.TextField()
@@ -143,8 +139,6 @@ class RestaurantReview(models.Model):
     rating = models.PositiveIntegerField()
     review = models.TextField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
-   
-
 
     def __str__(self):
         return f"Review by {self.user.username} on {self.restaurant.name}"
@@ -198,24 +192,30 @@ class OrderItem(models.Model):
         return f"{self.quantity}x {self.food.name} in Order {self.order.id}"
     
 class Cart(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    cart_items = models.ManyToManyField(Food, through='CartItem')
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     @property
     def total_price(self):
-        total = sum(item.quantity * item.food.price for item in self.cart_items.all())
+        total = sum(item.total_price for item in self.cart_items.all())
         return round(total, 2)
 
     def __str__(self):
-        return f"Cart for {self.user.username}"
+        return f"Cart for {self.user.username} (ID: {self.id})"
 
 class CartItem(models.Model):
-    cart = models.ForeignKey(Cart, on_delete=models.CASCADE)
-    food = models.ForeignKey(Food, on_delete=models.CASCADE)
+    cart = models.ForeignKey(Cart, related_name='cart_items', on_delete=models.CASCADE)
+    food = models.ForeignKey('Food', on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField()
+
+    @property
+    def total_price(self):
+        return round(self.quantity * self.food.price, 2)
 
     def __str__(self):
         return f"{self.quantity}x {self.food.name} in Cart {self.cart.id}"
+    
 
 class Reservation(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
@@ -223,11 +223,11 @@ class Reservation(models.Model):
     reservation_date = models.DateTimeField()
     number_of_people = models.PositiveIntegerField()
     special_requests = models.TextField(blank=True)
-    reservation_type = models.CharField(max_length=50, choices=RESERVATION_TYPE_CHOICES, default='conference_room')
+    reservation_type = models.CharField(max_length=50, choices=RESERVATION_TYPE_CHOICES)
 
 
     def __str__(self):
-        return f"Reservation {self.id} by {self.user.username} on {self.reservation_date}"
+        return f"Reservation for {self.user.username} (ID: {self.id})"
 
 
 
@@ -260,8 +260,6 @@ class Accommodation(models.Model):
 
     def __str__(self):
         return self.name
-
-
 
 
 class Manager(models.Model):

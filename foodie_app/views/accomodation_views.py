@@ -72,3 +72,27 @@ class AccommodationDeleteView(generics.DestroyAPIView):
             raise PermissionDenied("You do not have permission to delete this accommodation.")
         instance.delete()
         logger.info(f"Accommodation deleted successfully: {instance.id}")
+
+# views.py
+
+from rest_framework import generics
+from rest_framework.permissions import IsAuthenticated
+from foodie_app.models import Booking
+from foodie_app.serializer import BookingSerializer
+
+class BookingListCreateView(generics.ListCreateAPIView):
+    queryset = Booking.objects.all()
+    serializer_class = BookingSerializer
+    permission_classes = [IsAuthenticated]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class BookingRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Booking.objects.all()
+    serializer_class = BookingSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Booking.objects.filter(user=self.request.user)
+

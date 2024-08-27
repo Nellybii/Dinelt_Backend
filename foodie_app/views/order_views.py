@@ -16,7 +16,7 @@ class OrderCreateView(APIView):
         if not isinstance(order_items_data, list):
             return Response({"detail": "Order items must be a list."}, status=status.HTTP_400_BAD_REQUEST)
         
-        # Ensure there is at least one order item
+        # Ensure there is at least  one order item
         if not order_items_data:
             return Response({"detail": "At least one order item is required."}, status=status.HTTP_400_BAD_REQUEST)
 
