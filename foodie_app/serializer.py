@@ -4,7 +4,7 @@ from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth import authenticate
 from foodie_app.models import (
     User, Profile, Post, Story, Restaurant, RestaurantReview, Food, Order,
-    Reservation, Cart, OrderItem, Booking, Accommodation, Manager
+    Reservation, Cart, OrderItem, Booking, Accommodation, Manager, CartItem
 )
 import logging
 from datetime import timedelta
@@ -164,67 +164,56 @@ class FoodSerializer(serializers.ModelSerializer):
         fields = ['id', 'restaurant', 'name', 'description', 'price', 'category']
         read_only_fields = ['owner']
 
+
+class FoodSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Food
+        fields = '__all__'  # Include all fields for simplicity
+
 class OrderItemSerializer(serializers.ModelSerializer):
+    food_name = serializers.ReadOnlyField(source='food.name')
+
     class Meta:
         model = OrderItem
-        fields = ['id', 'food', 'price', 'quantity', 'user']
-        read_only_fields = ['user']
+        fields = ['id', 'food', 'food_name', 'quantity', 'price']
 
 
 class OrderSerializer(serializers.ModelSerializer):
-    order_items = serializers.ListField(child=serializers.IntegerField())
+    order_items = OrderItemSerializer(many=True, read_only=True)
+    total_price = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
 
     class Meta:
         model = Order
-        fields = ['id', 'user', 'restaurant', 'created_at', 'status', 'total_price', 'order_items']
-        read_only_fields = ['user']
+        fields = ['id', 'user', 'restaurant', 'status', 'order_time', 'estimated_delivery_time', 'total_price', 'order_items']
+        read_only_fields = ['id', 'user', 'order_time', 'estimated_delivery_time', 'total_price']
 
     def create(self, validated_data):
-        order_items_ids = validated_data.pop('order_items', [])
         order = Order.objects.create(**validated_data)
-
-        # Associate existing OrderItems with the created Order
-        for item_id in order_items_ids:
-            try:
-                order_item = OrderItem.objects.get(id=item_id)
-                order.order_items.add(order_item)
-            except OrderItem.DoesNotExist:
-                raise serializers.ValidationError(f"OrderItem with id {item_id} does not exist.")
-        
         return order
 
-    def update(self, instance, validated_data):
-        order_items_ids = validated_data.pop('order_items', [])
-        instance.restaurant = validated_data.get('restaurant', instance.restaurant)
-        instance.status = validated_data.get('status', instance.status)
-        instance.total_price = validated_data.get('total_price', instance.total_price)
-        instance.save()
+class CartItemSerializer(serializers.ModelSerializer):
+    food = FoodSerializer()  # Nested serializer for Food
+    class Meta:
+        model = CartItem
+        fields = ('id', 'cart', 'food', 'quantity')
 
-        # Update OrderItems (assume IDs are to be replaced with new ones)
-        instance.order_items.clear()
-        for item_id in order_items_ids:
-            try:
-                order_item = OrderItem.objects.get(id=item_id)
-                instance.order_items.add(order_item)
-            except OrderItem.DoesNotExist:
-                raise serializers.ValidationError(f"OrderItem with id {item_id} does not exist.")
+class CartSerializer(serializers.ModelSerializer):
+    cart_items = CartItemSerializer(many=True)  # Nested serializer for CartItem
+    total_price = serializers.SerializerMethodField()  # Custom method to calculate total
 
-        return instance
+    def get_total_price(self, obj):
+        return obj.total_price
+
+    class Meta:
+        model = Cart
+        fields = ('id', 'user', 'cart_items', 'total_price')
+        read_only = ("user")
     
 class ReservationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Reservation
         fields = ['id', 'user', 'restaurant', 'reservation_date', 'number_of_people', 'special_requests', 'reservation_type']
 
-class CartSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Cart
-        fields = ['id', 'user', 'restaurant', 'created_at', 'items']
-
-class CartItemSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = OrderItem
-        fields = ['id', 'cart', 'food', 'quantity']
 
 class BookingSerializer(serializers.ModelSerializer):
     class Meta:

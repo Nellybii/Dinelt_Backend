@@ -170,66 +170,52 @@ class ReservationCategory(models.Model):
     def __str__(self):
         return self.name
 
-
-class OrderItem(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    food = models.ForeignKey(Food, on_delete=models.CASCADE)
-    price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
-    quantity = models.PositiveIntegerField(default=1)
-
-    def save(self, *args, **kwargs):
-        if self.food:
-            self.price = self.food.price
-        super().save(*args, **kwargs)
-
-    def __str__(self):
-        return f"{self.food.name} - {self.quantity}"
-
-
 class Order(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE)
-    created_at = models.DateTimeField(auto_now_add=True)
-    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='Pending')
-    total_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
-    order_items = models.ManyToManyField(OrderItem, related_name='orders')
-
-
-    def __str__(self):
-        return f"Order {self.id} by {self.user.username}"
-
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
+    order_time = models.DateTimeField(auto_now_add=True)
+    estimated_delivery_time = models.DateTimeField(blank=True, null=True)
+    total_price = models.DecimalField(max_digits=10, decimal_places=2)
 
     def calculate_total_price(self):
-        return sum(item.price * item.quantity for item in self.order_items.all())
+        # Calculate the total price by summing the price of all associated OrderItems
+        return sum(item.food.price * item.quantity for item in self.order_items.all())
 
     def save(self, *args, **kwargs):
+        # Calculate the total price before saving the order
+        if self.pk:  # Ensure the Order has been saved and has a primary key
+            self.total_price = self.calculate_total_price()
         super().save(*args, **kwargs)
 
-
-class Cart(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE)
-    items = models.ManyToManyField(Food, through='CartItem')
-    created_at = models.DateTimeField(auto_now_add=True)
-
+class OrderItem(models.Model):
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='order_items')
+    food = models.ForeignKey(Food, on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField()
+    price = models.DecimalField(max_digits=10, decimal_places=2)
 
     def __str__(self):
-        return f"Cart for {self.user.username} at {self.restaurant.name}"
+        return f"{self.quantity}x {self.food.name} in Order {self.order.id}"
+    
+class Cart(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    cart_items = models.ManyToManyField(Food, through='CartItem')
 
+    @property
+    def total_price(self):
+        total = sum(item.quantity * item.food.price for item in self.cart_items.all())
+        return round(total, 2)
 
-
+    def __str__(self):
+        return f"Cart for {self.user.username}"
 
 class CartItem(models.Model):
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE)
     food = models.ForeignKey(Food, on_delete=models.CASCADE)
-    quantity = models.PositiveIntegerField(default=1)
-
+    quantity = models.PositiveIntegerField()
 
     def __str__(self):
-        return f"{self.food.name} in cart {self.cart.id}"
-
-
-
+        return f"{self.quantity}x {self.food.name} in Cart {self.cart.id}"
 
 class Reservation(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
