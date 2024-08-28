@@ -212,6 +212,19 @@ class CartSerializer(serializers.ModelSerializer):
         fields = ['id', 'user', 'cart_items', 'total_price']
         read_only_fields = ['id', 'user', 'total_price']
     
+class CartItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CartItem
+        fields = ['id', 'food', 'quantity', 'price']
+
+class CartSerializer(serializers.ModelSerializer):
+    cart_items = CartItemSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Cart
+        fields = ['id', 'user', 'cart_items', 'total_price']
+        read_only_fields = ['id', 'user']
+        
 class ReservationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Reservation
